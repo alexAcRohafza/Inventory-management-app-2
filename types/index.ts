@@ -112,4 +112,20 @@ export interface DetailedInventoryItem {
   storageUnitName: string
   lastMovementDate?: Date
   isLowStock: boolean
+}
+
+// AI Analysis Types
+export interface AnalysisRequest {
+  reportType: 'inventory' | 'low-stock' | 'movements' | 'locations' | 'analytics'
+  data: any[]
+  question?: string
+  analysisType: 'summary' | 'forecast' | 'risks' | 'insights' | 'custom'
+}
+
+export interface AnalysisResponse {
+  analysis: string
+  keyInsights: string[]
+  recommendations: string[]
+  riskFactors?: string[]
+  forecastData?: any
 } 

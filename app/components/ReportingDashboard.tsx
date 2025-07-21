@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import CSVUploader from './CSVUploader'
+import AIAnalysisPanel from './AIAnalysisPanel'
 import { DetailedInventoryItem, ReportFilter, LocationHierarchy, CSVUploadResult } from '@/types'
 
 interface ReportingDashboardProps {
@@ -9,7 +10,7 @@ interface ReportingDashboardProps {
 }
 
 export default function ReportingDashboard({ className = '' }: ReportingDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'reports' | 'import' | 'export'>('reports')
+  const [activeTab, setActiveTab] = useState<'reports' | 'ai-analysis' | 'import' | 'export'>('reports')
   const [reportType, setReportType] = useState<'inventory' | 'low-stock' | 'movements' | 'locations'>('inventory')
   const [reportData, setReportData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -124,6 +125,7 @@ export default function ReportingDashboard({ className = '' }: ReportingDashboar
         <nav className="flex space-x-8 px-6">
           {[
             { id: 'reports', label: 'Reports & Analytics', icon: '📊' },
+            { id: 'ai-analysis', label: 'AI Smart Analysis', icon: '🤖' },
             { id: 'import', label: 'CSV Import', icon: '📥' },
             { id: 'export', label: 'Data Export', icon: '📤' }
           ].map((tab) => (
@@ -184,6 +186,16 @@ export default function ReportingDashboard({ className = '' }: ReportingDashboar
                 >
                   Export to CSV
                 </button>
+
+                {reportData.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab('ai-analysis')}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm flex items-center space-x-2"
+                  >
+                    <span>🤖</span>
+                    <span>AI Analysis</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -402,6 +414,41 @@ export default function ReportingDashboard({ className = '' }: ReportingDashboar
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'ai-analysis' && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">AI-Powered Report Analysis</h3>
+              <p className="text-gray-600">
+                Get intelligent insights, forecasts, and recommendations from your inventory data using advanced AI analysis.
+              </p>
+            </div>
+
+            {reportData.length > 0 ? (
+              <AIAnalysisPanel 
+                reportData={reportData} 
+                reportType={reportType}
+                className="mt-4"
+              />
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-3xl">🤖</span>
+                </div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">No Data Available</h4>
+                <p className="text-gray-600 mb-4">
+                  Generate a report first to unlock AI-powered insights and analysis.
+                </p>
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Go to Reports
+                </button>
               </div>
             )}
           </div>
