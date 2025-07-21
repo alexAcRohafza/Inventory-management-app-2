@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
+import { UserRole } from '@/types'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
@@ -22,7 +23,8 @@ export const authOptions: NextAuthOptions = {
             id: '1',
             email: credentials.email,
             name: 'Admin User',
-            role: credentials.email === 'admin@example.com' ? 'ADMIN' : 'USER'
+            role: credentials.email === 'admin@example.com' ? UserRole.ADMIN : 
+                  credentials.email === 'user@example.com' ? UserRole.WORKER : UserRole.WORKER
           }
 
           // Mock password validation - replace with bcrypt comparison later
@@ -55,7 +57,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub!
-        session.user.role = token.role as string
+        session.user.role = token.role as UserRole
       }
       return session
     }
