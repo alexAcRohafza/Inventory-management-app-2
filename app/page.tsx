@@ -1,3 +1,5 @@
+import RoleDemo from './components/RoleDemo'
+
 export default function Home() {
   return (
     <div className="space-y-8">
@@ -85,6 +87,12 @@ export default function Home() {
           <p>No recent activity to display</p>
           <p className="text-sm mt-2">Start by adding some inventory items!</p>
         </div>
+      </div>
+
+      {/* Role-Based Access Demo */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Authentication & Role Demo</h2>
+        <RoleDemo />
       </div>
     </div>
   );

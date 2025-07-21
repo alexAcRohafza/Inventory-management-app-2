@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn, getSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
