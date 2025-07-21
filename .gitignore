@@ -26,8 +26,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env
 .env*.local
+.env
 
 # vercel
 .vercel
@@ -37,4 +37,4 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma
-/prisma/migrations 
+/prisma/migrations/migration_lock.toml 
