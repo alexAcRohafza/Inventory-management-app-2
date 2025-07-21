@@ -39,4 +39,77 @@ export interface InventoryItem {
   category: string
   supplier: string
   lastUpdated: Date
+}
+
+// CSV and Reporting types
+export interface CSVUploadResult {
+  totalRows: number
+  validRows: number
+  importedRows: number
+  errors: CSVValidationError[]
+}
+
+export interface CSVValidationError {
+  row: number
+  field: string
+  message: string
+  value?: any
+}
+
+export interface ReportType {
+  id: string
+  name: string
+  description: string
+  category: 'inventory' | 'movement' | 'analytics'
+}
+
+export interface ReportFilter {
+  locationId?: string
+  areaId?: string
+  storageUnitId?: string
+  lowStockThreshold?: number
+  dateFrom?: Date
+  dateTo?: Date
+  category?: string
+}
+
+export interface LocationHierarchy {
+  locations: Location[]
+  areas: Area[]
+  storageUnits: StorageUnit[]
+}
+
+export interface Location {
+  id: string
+  name: string
+  address: string
+}
+
+export interface Area {
+  id: string
+  name: string
+  locationId: string
+  locationName?: string
+}
+
+export interface StorageUnit {
+  id: string
+  name: string
+  areaId: string
+  areaName?: string
+  locationName?: string
+}
+
+export interface DetailedInventoryItem {
+  id: string
+  name: string
+  description?: string
+  quantity: number
+  price?: number
+  sku?: string
+  locationName: string
+  areaName: string
+  storageUnitName: string
+  lastMovementDate?: Date
+  isLowStock: boolean
 } 
