@@ -5,4 +5,96 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  role     String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vendor {
+  id      String @id @default(uuid())
+  name    String
+  contact String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Location {
+  id      String @id @default(uuid())
+  name    String
+  address String
+  
+  areas Area[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Area {
+  id         String @id @default(uuid())
+  name       String
+  locationId String
+  
+  location     Location      @relation(fields: [locationId], references: [id])
+  storageUnits StorageUnit[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StorageUnit {
+  id     String @id @default(uuid())
+  name   String
+  areaId String
+  
+  area  Area   @relation(fields: [areaId], references: [id])
+  items Item[]
+  
+  // For inventory movements tracking
+  movementsFrom InventoryMovement[] @relation("FromStorageUnit")
+  movementsTo   InventoryMovement[] @relation("ToStorageUnit")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Item {
+  id            String  @id @default(uuid())
+  name          String
+  description   String?
+  quantity      Int     @default(0)
+  price         Float?
+  sku           String? @unique
+  storageUnitId String
+  
+  storageUnit        StorageUnit         @relation(fields: [storageUnitId], references: [id])
+  inventoryMovements InventoryMovement[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InventoryMovement {
+  id                  String   @id @default(uuid())
+  itemId              String
+  quantity            Int
+  movementType        String   // IN, OUT, TRANSFER
+  fromStorageUnitId   String?
+  toStorageUnitId     String?
+  notes               String?
+  movementDate        DateTime @default(now())
+  
+  item            Item         @relation(fields: [itemId], references: [id])
+  fromStorageUnit StorageUnit? @relation("FromStorageUnit", fields: [fromStorageUnitId], references: [id])
+  toStorageUnit   StorageUnit? @relation("ToStorageUnit", fields: [toStorageUnitId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 } 
