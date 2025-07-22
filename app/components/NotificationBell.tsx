@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { NotificationData } from '@/types'
 
@@ -22,7 +22,7 @@ export default function NotificationBell({
   const { data: session } = useSession()
 
   // Fetch notifications from API
-  const fetchNotifications = async (unreadOnly = false) => {
+  const fetchNotifications = useCallback(async (unreadOnly = false) => {
     if (!session?.user?.email) return
 
     setLoading(true)
@@ -52,7 +52,7 @@ export default function NotificationBell({
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.email])
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
@@ -119,14 +119,14 @@ export default function NotificationBell({
         clearInterval(pollIntervalRef.current)
       }
     }
-  }, [session, pollInterval])
+  }, [session, pollInterval, fetchNotifications])
 
   // Fetch full notifications when dropdown opens
   useEffect(() => {
     if (isOpen && session?.user?.email) {
       fetchNotifications(false) // Get all notifications
     }
-  }, [isOpen, session])
+  }, [isOpen, session, fetchNotifications])
 
   // Don't render if not authenticated
   if (!session?.user?.email) {
