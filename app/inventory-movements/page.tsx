@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { WorkerAndUp } from '../components/PermissionGuard'
 import { Breadcrumb } from '../components/Navigation'
+import { MovementForm } from '../components/forms/MovementForm'
 
 interface Movement {
   id: string
@@ -22,6 +23,7 @@ export default function InventoryMovementsPage() {
   const router = useRouter()
   const [movements, setMovements] = useState<Movement[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'view' | 'record'>('view')
 
   useEffect(() => {
     if (status === 'loading') return
@@ -130,71 +132,120 @@ export default function InventoryMovementsPage() {
                     Track all inventory movements and transfers
                   </p>
                 </div>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                <button 
+                  onClick={() => setActiveTab('record')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
                   + Record Movement
                 </button>
               </div>
 
-              {loading ? (
-                <div className="text-center py-4">Loading movements...</div>
-              ) : (
-                <div className="space-y-4">
-                  {movements.map((movement) => (
-                    <div key={movement.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-2xl">{getMovementIcon(movement.movementType)}</div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{movement.itemName}</h3>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMovementTypeColor(movement.movementType)}`}>
-                                {movement.movementType}
-                              </span>
-                              <span className={`text-sm font-medium ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {movement.quantity > 0 ? '+' : ''}{movement.quantity}
-                              </span>
+              {activeTab === 'view' && (
+                <>
+                  {loading ? (
+                    <div className="text-center py-4">Loading movements...</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {movements.map((movement) => (
+                        <div key={movement.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="text-2xl">{getMovementIcon(movement.movementType)}</div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900">{movement.itemName}</h3>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMovementTypeColor(movement.movementType)}`}>
+                                    {movement.movementType}
+                                  </span>
+                                  <span className={`text-sm font-medium ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-gray-500">
+                                {new Date(movement.createdAt).toLocaleDateString()}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {new Date(movement.createdAt).toLocaleTimeString()}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-500">
-                            {new Date(movement.createdAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(movement.createdAt).toLocaleTimeString()}
-                          </div>
-                        </div>
-                      </div>
 
-                      {(movement.fromLocation || movement.toLocation) && (
-                        <div className="mt-3 text-sm text-gray-600">
-                          {movement.fromLocation && (
-                            <div>📤 From: {movement.fromLocation}</div>
+                          {(movement.fromLocation || movement.toLocation) && (
+                            <div className="mt-3 text-sm text-gray-600">
+                              {movement.fromLocation && (
+                                <div>📤 From: {movement.fromLocation}</div>
+                              )}
+                              {movement.toLocation && (
+                                <div>📥 To: {movement.toLocation}</div>
+                              )}
+                            </div>
                           )}
-                          {movement.toLocation && (
-                            <div>📥 To: {movement.toLocation}</div>
+
+                          {movement.notes && (
+                            <div className="mt-2 text-sm text-gray-500">
+                              💬 {movement.notes}
+                            </div>
                           )}
                         </div>
-                      )}
+                      ))}
 
-                      {movement.notes && (
-                        <div className="mt-2 text-sm text-gray-500">
-                          💬 {movement.notes}
+                      {movements.length === 0 && (
+                        <div className="text-center py-8">
+                          <div className="text-4xl mb-4">🔄</div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">No movements recorded</h3>
+                          <p className="text-gray-600 mb-4">Start tracking inventory movements to see them here.</p>
+                          <button 
+                            onClick={() => setActiveTab('record')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            + Record First Movement
+                          </button>
                         </div>
                       )}
-                    </div>
-                  ))}
-
-                  {movements.length === 0 && (
-                    <div className="text-center py-8">
-                      <div className="text-4xl mb-4">🔄</div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No movements recorded</h3>
-                      <p className="text-gray-600 mb-4">Start tracking inventory movements to see them here.</p>
-                      <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                        + Record First Movement
-                      </button>
                     </div>
                   )}
+                </>
+              )}
+
+              {activeTab === 'record' && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">Record Inventory Movement</h2>
+                    <button
+                      onClick={() => setActiveTab('view')}
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      ← Back to Movements
+                    </button>
+                  </div>
+                  <MovementForm
+                    onSubmit={async (data) => {
+                      try {
+                        const response = await fetch('/api/inventory-movements', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify(data),
+                        })
+                        
+                        if (response.ok) {
+                          await fetchMovements() // Refresh movements list
+                          setActiveTab('view') // Return to movements view
+                        } else {
+                          const errorData = await response.json()
+                          throw new Error(errorData.error || 'Failed to record movement')
+                        }
+                      } catch (error) {
+                        console.error('Error recording movement:', error)
+                        throw error
+                      }
+                    }}
+                    onCancel={() => setActiveTab('view')}
+                  />
                 </div>
               )}
             </div>

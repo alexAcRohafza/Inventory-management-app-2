@@ -21,6 +21,14 @@ export default function VendorsPage() {
   const router = useRouter()
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'view' | 'add' | 'edit' | 'contact' | 'items'>('view')
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null)
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    contact: '', 
+    email: '', 
+    address: '' 
+  })
 
   useEffect(() => {
     if (status === 'loading') return
@@ -70,6 +78,33 @@ export default function VendorsPage() {
     }
   }
 
+  const handleAddVendor = () => {
+    setSelectedVendor(null)
+    setFormData({ name: '', contact: '', email: '', address: '' })
+    setActiveTab('add')
+  }
+
+  const handleEditVendor = (vendor: Vendor) => {
+    setSelectedVendor(vendor)
+    setFormData({
+      name: vendor.name,
+      contact: vendor.contact,
+      email: vendor.email || '',
+      address: vendor.address || ''
+    })
+    setActiveTab('edit')
+  }
+
+  const handleContactVendor = (vendor: Vendor) => {
+    setSelectedVendor(vendor)
+    setActiveTab('contact')
+  }
+
+  const handleViewItems = (vendor: Vendor) => {
+    setSelectedVendor(vendor)
+    setActiveTab('items')
+  }
+
   const userRole = session?.user?.role
   const canEdit = userRole === 'ADMIN' || userRole === 'MANAGER'
 
@@ -105,78 +140,312 @@ export default function VendorsPage() {
                   </p>
                 </div>
                 {canEdit && (
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                  <button 
+                    onClick={handleAddVendor}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
                     + Add Vendor
                   </button>
                 )}
               </div>
 
-              {loading ? (
-                <div className="text-center py-4">Loading vendors...</div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {vendors.map((vendor) => (
-                    <div key={vendor.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-2xl">🏪</div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{vendor.name}</h3>
-                            <p className="text-sm text-gray-600">Contact: {vendor.contact}</p>
+              {activeTab === 'view' && (
+                <>
+                  {loading ? (
+                    <div className="text-center py-4">Loading vendors...</div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {vendors.map((vendor) => (
+                        <div key={vendor.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="text-2xl">🏪</div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900">{vendor.name}</h3>
+                                <p className="text-sm text-gray-600">Contact: {vendor.contact}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-blue-600">
+                                {vendor.itemsSupplied} items supplied
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 mb-4">
+                            {vendor.email && (
+                              <p className="text-sm text-gray-600">
+                                📧 {vendor.email}
+                              </p>
+                            )}
+                            {vendor.address && (
+                              <p className="text-sm text-gray-600">
+                                📍 {vendor.address}
+                              </p>
+                            )}
+                            {vendor.lastOrder && (
+                              <p className="text-sm text-gray-600">
+                                📅 Last order: {new Date(vendor.lastOrder).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => handleViewItems(vendor)}
+                              className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                            >
+                              View Items
+                            </button>
+                            <button 
+                              onClick={() => handleContactVendor(vendor)}
+                              className="flex-1 bg-green-100 text-green-700 px-3 py-2 rounded-md text-sm hover:bg-green-200 transition-colors"
+                            >
+                              Contact
+                            </button>
+                            {canEdit && (
+                              <button 
+                                onClick={() => handleEditVendor(vendor)}
+                                className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors"
+                              >
+                                Edit
+                              </button>
+                            )}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-blue-600">
-                            {vendor.itemsSupplied} items supplied
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        {vendor.email && (
-                          <p className="text-sm text-gray-600">
-                            📧 {vendor.email}
-                          </p>
-                        )}
-                        {vendor.address && (
-                          <p className="text-sm text-gray-600">
-                            📍 {vendor.address}
-                          </p>
-                        )}
-                        {vendor.lastOrder && (
-                          <p className="text-sm text-gray-600">
-                            📅 Last order: {new Date(vendor.lastOrder).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex space-x-2">
-                        <button className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors">
-                          View Items
-                        </button>
-                        <button className="flex-1 bg-green-100 text-green-700 px-3 py-2 rounded-md text-sm hover:bg-green-200 transition-colors">
-                          Contact
-                        </button>
-                        {canEdit && (
-                          <button className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors">
-                            Edit
-                          </button>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  {userRole === 'VENDOR' && (
+                    <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-blue-900 mb-2">🏪 Vendor Portal</h3>
+                      <p className="text-blue-800 mb-4">
+                        As a vendor, you can view your supplied items and track their inventory levels.
+                      </p>
+                      <button 
+                        onClick={() => setActiveTab('items')}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        View My Items
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {(activeTab === 'add' || activeTab === 'edit') && (
+                <div className="max-w-md mx-auto">
+                  <div className="bg-white p-6 rounded-lg border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-900">
+                        {activeTab === 'add' ? 'Add New Vendor' : `Edit Vendor: ${selectedVendor?.name}`}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setActiveTab('view')
+                          setSelectedVendor(null)
+                          setFormData({ name: '', contact: '', email: '', address: '' })
+                        }}
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        ← Back to Vendors
+                      </button>
+                    </div>
+                    
+                    <form onSubmit={async (e) => {
+                      e.preventDefault()
+                      
+                      try {
+                        if (activeTab === 'add') {
+                          const newVendor: Vendor = {
+                            id: Date.now().toString(),
+                            name: formData.name,
+                            contact: formData.contact,
+                            email: formData.email || undefined,
+                            address: formData.address || undefined,
+                            itemsSupplied: 0,
+                            lastOrder: undefined
+                          }
+                          setVendors(prev => [...prev, newVendor])
+                          alert('Vendor added successfully!')
+                        } else {
+                          setVendors(prev => prev.map(v => 
+                            v.id === selectedVendor?.id 
+                              ? { 
+                                  ...v, 
+                                  name: formData.name,
+                                  contact: formData.contact,
+                                  email: formData.email || undefined,
+                                  address: formData.address || undefined
+                                }
+                              : v
+                          ))
+                          alert('Vendor updated successfully!')
+                        }
+                        
+                        setActiveTab('view')
+                        setSelectedVendor(null)
+                        setFormData({ name: '', contact: '', email: '', address: '' })
+                      } catch (error) {
+                        console.error('Error saving vendor:', error)
+                        alert('Failed to save vendor')
+                      }
+                    }}>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Vendor Name *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g., ABC Supplies Co."
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Contact Person *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={formData.contact}
+                            onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g., John Smith"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address
+                          </label>
+                          <input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="contact@vendor.com"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Address
+                          </label>
+                          <textarea
+                            value={formData.address}
+                            onChange={(e) => setFormData({...formData, address: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="123 Business St, City, State 12345"
+                            rows={3}
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-3 pt-4">
+                          <button
+                            type="submit"
+                            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            {activeTab === 'add' ? 'Add Vendor' : 'Update Vendor'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab('view')
+                              setSelectedVendor(null)
+                              setFormData({ name: '', contact: '', email: '', address: '' })
+                            }}
+                            className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               )}
 
-              {userRole === 'VENDOR' && (
-                <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">🏪 Vendor Portal</h3>
-                  <p className="text-blue-800 mb-4">
-                    As a vendor, you can view your supplied items and track their inventory levels.
-                  </p>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                    View My Items
-                  </button>
+              {activeTab === 'contact' && selectedVendor && (
+                <div className="max-w-2xl mx-auto">
+                  <div className="bg-white p-6 rounded-lg border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-900">
+                        Contact: {selectedVendor.name}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setActiveTab('view')
+                          setSelectedVendor(null)
+                        }}
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        ← Back to Vendors
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-900 mb-2">Contact Information</h4>
+                        <div className="space-y-2">
+                          <p><strong>Contact Person:</strong> {selectedVendor.contact}</p>
+                          {selectedVendor.email && <p><strong>Email:</strong> {selectedVendor.email}</p>}
+                          {selectedVendor.address && <p><strong>Address:</strong> {selectedVendor.address}</p>}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <button className="w-full bg-green-100 text-green-700 px-4 py-3 rounded-lg hover:bg-green-200 transition-colors">
+                          📧 Send Email
+                        </button>
+                        <button className="w-full bg-blue-100 text-blue-700 px-4 py-3 rounded-lg hover:bg-blue-200 transition-colors">
+                          📞 Schedule Call
+                        </button>
+                        <button className="w-full bg-purple-100 text-purple-700 px-4 py-3 rounded-lg hover:bg-purple-200 transition-colors">
+                          📄 Request Quote
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'items' && selectedVendor && (
+                <div className="max-w-6xl mx-auto">
+                  <div className="bg-white p-6 rounded-lg border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-900">
+                        Items from: {selectedVendor.name}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setActiveTab('view')
+                          setSelectedVendor(null)
+                        }}
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        ← Back to Vendors
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Mock vendor items */}
+                      {Array.from({ length: selectedVendor.itemsSupplied || 3 }, (_, i) => (
+                        <div key={i} className="border border-gray-200 rounded-lg p-4">
+                          <h4 className="font-semibold text-gray-900">Product {i + 1}</h4>
+                          <p className="text-sm text-gray-600 mt-1">SKU: VEN-{selectedVendor.id}-{i + 1}</p>
+                          <p className="text-sm text-gray-600">Stock: {Math.floor(Math.random() * 100) + 10}</p>
+                          <p className="text-sm text-blue-600 font-medium mt-2">${(Math.random() * 100 + 10).toFixed(2)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
