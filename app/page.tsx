@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+    <div className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="text-center max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           📦 Inventory Management System
@@ -76,6 +76,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 } 

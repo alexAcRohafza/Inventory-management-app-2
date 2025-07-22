@@ -92,15 +92,6 @@ export default function InventoryPage() {
                 Manage your inventory items and track movements
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <NotificationBell />
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-              >
-                Back to Dashboard
-              </button>
-            </div>
           </div>
 
           {/* Navigation Tabs */}

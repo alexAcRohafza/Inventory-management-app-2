@@ -36,19 +36,10 @@ export default function DashboardPage() {
           <div className="px-4 py-5 sm:p-6">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Inventory Management Dashboard</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
                 <p className="mt-1 text-sm text-gray-600">
                   Manage your inventory, generate reports, and import/export data
                 </p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <NotificationBell />
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                  Sign Out
-                </button>
               </div>
             </div>
 
