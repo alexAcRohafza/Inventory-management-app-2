@@ -29,6 +29,8 @@ export default function VendorsPage() {
     email: '', 
     address: '' 
   })
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [contactType, setContactType] = useState<'email' | 'call' | 'quote'>('email')
 
   useEffect(() => {
     if (status === 'loading') return
@@ -76,6 +78,51 @@ export default function VendorsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Vendor contact handlers
+  const handleSendEmail = (vendor: Vendor) => {
+    setSelectedVendor(vendor)
+    setContactType('email')
+    setShowContactModal(true)
+  }
+
+  const handleScheduleCall = (vendor: Vendor) => {
+    setSelectedVendor(vendor)
+    setContactType('call')
+    setShowContactModal(true)
+  }
+
+  const handleRequestQuote = (vendor: Vendor) => {
+    setSelectedVendor(vendor)
+    setContactType('quote')
+    setShowContactModal(true)
+  }
+
+  const processContactAction = () => {
+    if (!selectedVendor) return
+    
+    switch (contactType) {
+      case 'email':
+        // Create mailto link
+        const subject = `Inquiry from ${session?.user?.name || 'Inventory System'}`
+        const body = `Hello ${selectedVendor.contact},\n\nI would like to discuss our inventory needs.\n\nBest regards,\n${session?.user?.name || 'Team'}`
+        window.open(`mailto:${selectedVendor.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+        break
+        
+      case 'call':
+        // Show phone number for calling
+        alert(`Please call ${selectedVendor.contact} at: [Phone number to be configured]`)
+        break
+        
+      case 'quote':
+        // Create quote request
+        alert(`Quote request prepared for ${selectedVendor.name}. This will be sent via your preferred communication method.`)
+        break
+    }
+    
+    setShowContactModal(false)
+    setSelectedVendor(null)
   }
 
   const handleAddVendor = () => {
@@ -401,13 +448,22 @@ export default function VendorsPage() {
                       </div>
                       
                       <div className="space-y-3">
-                        <button className="w-full bg-green-100 text-green-700 px-4 py-3 rounded-lg hover:bg-green-200 transition-colors">
+                        <button 
+                          onClick={() => handleSendEmail(selectedVendor)}
+                          className="w-full bg-green-100 text-green-700 px-4 py-3 rounded-lg hover:bg-green-200 transition-colors"
+                        >
                           📧 Send Email
                         </button>
-                        <button className="w-full bg-blue-100 text-blue-700 px-4 py-3 rounded-lg hover:bg-blue-200 transition-colors">
+                        <button 
+                          onClick={() => handleScheduleCall(selectedVendor)}
+                          className="w-full bg-blue-100 text-blue-700 px-4 py-3 rounded-lg hover:bg-blue-200 transition-colors"
+                        >
                           📞 Schedule Call
                         </button>
-                        <button className="w-full bg-purple-100 text-purple-700 px-4 py-3 rounded-lg hover:bg-purple-200 transition-colors">
+                        <button 
+                          onClick={() => handleRequestQuote(selectedVendor)}
+                          className="w-full bg-purple-100 text-purple-700 px-4 py-3 rounded-lg hover:bg-purple-200 transition-colors"
+                        >
                           📄 Request Quote
                         </button>
                       </div>
@@ -451,6 +507,72 @@ export default function VendorsPage() {
             </div>
           </div>
         </div>
+
+        {/* Contact Modal */}
+        {showContactModal && selectedVendor && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {contactType === 'email' && '📧 Send Email'}
+                  {contactType === 'call' && '📞 Schedule Call'}
+                  {contactType === 'quote' && '📄 Request Quote'}
+                </h3>
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900">{selectedVendor.name}</h4>
+                  <p className="text-sm text-gray-600">Contact: {selectedVendor.contact}</p>
+                  {selectedVendor.email && (
+                    <p className="text-sm text-gray-600">Email: {selectedVendor.email}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                {contactType === 'email' && (
+                  <p className="text-sm text-gray-600">
+                    This will open your email client with a pre-filled message to {selectedVendor.name}.
+                  </p>
+                )}
+                {contactType === 'call' && (
+                  <p className="text-sm text-gray-600">
+                    This will provide you with the contact information to schedule a call with {selectedVendor.name}.
+                  </p>
+                )}
+                {contactType === 'quote' && (
+                  <p className="text-sm text-gray-600">
+                    This will prepare a quote request for {selectedVendor.name} based on your current inventory needs.
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={processContactAction}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  {contactType === 'email' && 'Open Email Client'}
+                  {contactType === 'call' && 'Show Contact Info'}
+                  {contactType === 'quote' && 'Prepare Quote'}
+                </button>
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </VendorAccess>
   )

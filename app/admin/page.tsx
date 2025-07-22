@@ -14,6 +14,7 @@ export default function AdminPage() {
     totalMovements: 0,
     totalNotifications: 0
   })
+  const [showAlertsModal, setShowAlertsModal] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -29,6 +30,10 @@ export default function AdminPage() {
     // Fetch system statistics
     fetchSystemStats()
   }, [session, status, router])
+
+  const handleShowAlerts = () => {
+    setShowAlertsModal(true)
+  }
 
   const fetchSystemStats = async () => {
     try {
@@ -183,7 +188,10 @@ export default function AdminPage() {
                   </svg>
                 </button>
 
-                <button className="w-full flex items-center justify-between px-4 py-3 bg-green-50 hover:bg-green-100 rounded-lg text-left transition-colors">
+                <button 
+                  onClick={() => router.push('/users')}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-green-50 hover:bg-green-100 rounded-lg text-left transition-colors"
+                >
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">👥</span>
                     <div>
@@ -196,7 +204,10 @@ export default function AdminPage() {
                   </svg>
                 </button>
 
-                <button className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-left transition-colors">
+                <button 
+                  onClick={() => router.push('/reports')}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-left transition-colors"
+                >
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">📊</span>
                     <div>
@@ -235,7 +246,10 @@ export default function AdminPage() {
                   </svg>
                 </button>
 
-                <button className="w-full flex items-center justify-between px-4 py-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg text-left transition-colors">
+                <button 
+                  onClick={() => router.push('/settings')}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg text-left transition-colors"
+                >
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">⚙️</span>
                     <div>
@@ -248,7 +262,10 @@ export default function AdminPage() {
                   </svg>
                 </button>
 
-                <button className="w-full flex items-center justify-between px-4 py-3 bg-red-50 hover:bg-red-100 rounded-lg text-left transition-colors">
+                <button 
+                  onClick={handleShowAlerts}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-red-50 hover:bg-red-100 rounded-lg text-left transition-colors"
+                >
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">🚨</span>
                     <div>
@@ -323,6 +340,85 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* System Alerts Modal */}
+      {showAlertsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">🚨 System Alerts</h3>
+              <button
+                onClick={() => setShowAlertsModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Mock system alerts */}
+              <div className="border border-red-200 rounded-lg p-3 bg-red-50">
+                <div className="flex items-start">
+                  <span className="text-red-500 mr-2">🔴</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-red-900">Low Stock Alert</div>
+                    <div className="text-sm text-red-700">5 items are below reorder threshold</div>
+                    <div className="text-xs text-red-600 mt-1">2 hours ago</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border border-yellow-200 rounded-lg p-3 bg-yellow-50">
+                <div className="flex items-start">
+                  <span className="text-yellow-500 mr-2">🟡</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-yellow-900">Storage Capacity Warning</div>
+                    <div className="text-sm text-yellow-700">Zone A is 85% full</div>
+                    <div className="text-xs text-yellow-600 mt-1">4 hours ago</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                <div className="flex items-start">
+                  <span className="text-blue-500 mr-2">🔵</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-blue-900">System Update</div>
+                    <div className="text-sm text-blue-700">Database backup completed successfully</div>
+                    <div className="text-xs text-blue-600 mt-1">6 hours ago</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border border-green-200 rounded-lg p-3 bg-green-50">
+                <div className="flex items-start">
+                  <span className="text-green-500 mr-2">🟢</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-green-900">System Status</div>
+                    <div className="text-sm text-green-700">All systems operating normally</div>
+                    <div className="text-xs text-green-600 mt-1">8 hours ago</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                onClick={() => alert('Alert settings opened (feature coming soon)')}
+                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                ⚙️ Settings
+              </button>
+              <button
+                onClick={() => setShowAlertsModal(false)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

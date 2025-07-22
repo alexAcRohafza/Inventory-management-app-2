@@ -137,7 +137,10 @@ export default function DashboardPage() {
                     Manage Inventory
                   </button>
                   {session.user.role === 'ADMIN' && (
-                    <button className="w-full flex items-center px-4 py-3 text-sm text-left text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => router.push('/admin')}
+                      className="w-full flex items-center px-4 py-3 text-sm text-left text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                    >
                       <span className="mr-3">⚙️</span>
                       Admin Settings
                     </button>
