@@ -1,17 +1,20 @@
 'use client'
 
-import { SessionProvider } from 'next-auth/react'
+import { DatabaseConnectionProvider } from './contexts/DatabaseConnectionContext'
+import { AuthProvider } from './contexts/AuthProvider'
 import { InventoryProvider } from '../lib/contexts/InventoryContext'
 import { SettingsProvider } from '../lib/contexts/SettingsContext'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
-      <SettingsProvider>
+    <DatabaseConnectionProvider>
+      <AuthProvider>
         <InventoryProvider>
-          {children}
+          <SettingsProvider>
+            {children}
+          </SettingsProvider>
         </InventoryProvider>
-      </SettingsProvider>
-    </SessionProvider>
+      </AuthProvider>
+    </DatabaseConnectionProvider>
   )
 } 

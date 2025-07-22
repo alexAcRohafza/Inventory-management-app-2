@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { getVisibleMenuItems } from '@/lib/access-control'
+import { UserRole } from '@/types'
 import NotificationBell from './NotificationBell'
 
 interface NavigationProps {
@@ -18,39 +20,13 @@ export default function Navigation({ className = '' }: NavigationProps) {
 
   const isActive = (path: string) => pathname === path
   
-  const publicLinks = [
-    { href: '/', label: '🏠 Home', icon: '🏠' },
-    { href: '/login', label: '🔐 Login', icon: '🔐' }
-  ]
+  const userRole = session?.user?.role as UserRole
+  const availableLinks = getVisibleMenuItems(userRole)
 
-  const authenticatedLinks = [
-    { href: '/dashboard', label: '📊 Dashboard', icon: '📊' },
-    { href: '/inventory', label: '📦 Inventory', icon: '📦', roles: ['ADMIN', 'MANAGER', 'WORKER'] }
-  ]
-
-  const adminLinks = [
-    { href: '/admin', label: '⚙️ Admin Panel', icon: '⚙️', roles: ['ADMIN'] }
-  ]
-
-  // Filter links based on user role
-  const getAvailableLinks = () => {
-    if (!session) return publicLinks
-
-    const userRole = session.user?.role
-    const links = [...authenticatedLinks]
-
-    // Add admin links for admin users
-    if (userRole === 'ADMIN') {
-      links.push(...adminLinks)
-    }
-
-    // Filter links based on role requirements
-    return links.filter(link => 
-      !link.roles || link.roles.includes(userRole as string)
-    )
+  // Don't render navigation if not authenticated
+  if (!session || status !== 'authenticated') {
+    return null
   }
-
-  const availableLinks = getAvailableLinks()
 
   return (
     <nav className={`bg-white shadow-lg ${className}`}>
@@ -78,7 +54,7 @@ export default function Navigation({ className = '' }: NavigationProps) {
                   }`}
                 >
                   <span className="mr-2">{link.icon}</span>
-                  {link.label.replace(/^🏠 |📊 |📦 |🔐 |⚙️ /, '')}
+                  {link.label}
                 </Link>
               ))}
             </div>
@@ -86,80 +62,55 @@ export default function Navigation({ className = '' }: NavigationProps) {
 
           {/* Right side - User info and actions */}
           <div className="flex items-center space-x-4">
-            {session && (
-              <>
-                <NotificationBell />
-                
-                {/* User info dropdown */}
-                <div className="relative group">
-                  <button className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {session.user.email?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="hidden md:block text-left">
-                      <div className="text-sm font-medium text-gray-900">
-                        {session.user.name || session.user.email?.split('@')[0]}
-                      </div>
-                      <div className="text-xs text-gray-500">{session.user.role}</div>
-                    </div>
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
+            <NotificationBell />
+            
+            {/* User info dropdown */}
+            <div className="relative group">
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  {session.user.email?.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden md:block text-left">
+                  <div className="text-sm font-medium text-gray-900">
+                    {session.user.name || session.user.email?.split('@')[0]}
+                  </div>
+                  <div className="text-xs text-gray-500">{session.user.role}</div>
+                </div>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+              
+              {/* Dropdown menu */}
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="py-1">
+                  <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                    <div className="font-medium">{session.user.email}</div>
+                    <div className="text-xs text-gray-500">Role: {session.user.role}</div>
+                  </div>
                   
-                  {/* Dropdown menu */}
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="py-1">
-                      <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                        <div className="font-medium">{session.user.email}</div>
-                        <div className="text-xs text-gray-500">Role: {session.user.role}</div>
-                      </div>
-                      
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        📊 Dashboard
-                      </Link>
-                      
-                      <Link
-                        href="/inventory"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        📦 Inventory
-                      </Link>
-
-                      {session.user.role === 'ADMIN' && (
-                        <Link
-                          href="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          ⚙️ Admin Panel
-                        </Link>
-                      )}
-                      
-                      <div className="border-t">
-                        <button
-                          onClick={() => signOut({ callbackUrl: '/' })}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                        >
-                          🚪 Sign Out
-                        </button>
-                      </div>
-                    </div>
+                  {/* Quick access menu items */}
+                  {availableLinks.slice(0, 5).map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {link.icon} {link.label}
+                    </Link>
+                  ))}
+                  
+                  <div className="border-t">
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/login' })}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      🚪 Sign Out
+                    </button>
                   </div>
                 </div>
-              </>
-            )}
-
-            {!session && status !== 'loading' && (
-              <Link
-                href="/login"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                Sign In
-              </Link>
-            )}
+              </div>
+            </div>
 
             {/* Mobile menu button */}
             <button
@@ -192,21 +143,19 @@ export default function Navigation({ className = '' }: NavigationProps) {
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  {link.label}
+                  {link.icon} {link.label}
                 </Link>
               ))}
               
-              {session && (
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                    signOut({ callbackUrl: '/' })
-                  }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
-                >
-                  🚪 Sign Out
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  signOut({ callbackUrl: '/login' })
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+              >
+                🚪 Sign Out
+              </button>
             </div>
           </div>
         )}

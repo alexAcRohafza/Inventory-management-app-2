@@ -12,6 +12,8 @@ model User {
   email    String @unique
   password String
   role     String
+  name     String?
+  access   String[] @default([]) // Additional access permissions array
   
   notifications Notification[]
   
@@ -23,6 +25,8 @@ model Vendor {
   id      String @id @default(uuid())
   name    String
   contact String
+  email   String?
+  address String?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -44,7 +48,7 @@ model Area {
   name       String
   locationId String
   
-  location     Location      @relation(fields: [locationId], references: [id])
+  location     Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
   storageUnits StorageUnit[]
   
   createdAt DateTime @default(now())
@@ -56,7 +60,7 @@ model StorageUnit {
   name   String
   areaId String
   
-  area  Area   @relation(fields: [areaId], references: [id])
+  area  Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
   items Item[]
   
   // For inventory movements tracking
@@ -76,8 +80,14 @@ model Item {
   sku           String? @unique
   storageUnitId String
   
-  storageUnit        StorageUnit         @relation(fields: [storageUnitId], references: [id])
+  // Additional fields as mentioned in instructions
+  batchId       String?
+  condition     String  @default("good") // good, damaged, expired
+  damage        String? // damage description if condition is damaged
+  
+  storageUnit        StorageUnit         @relation(fields: [storageUnitId], references: [id], onDelete: Cascade)
   inventoryMovements InventoryMovement[]
+  damageReports      DamageReport[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -87,13 +97,13 @@ model InventoryMovement {
   id                  String   @id @default(uuid())
   itemId              String
   quantity            Int
-  movementType        String   // IN, OUT, TRANSFER
+  movementType        String   // IN, OUT, TRANSFER, ADJUSTMENT
   fromStorageUnitId   String?
   toStorageUnitId     String?
   notes               String?
   movementDate        DateTime @default(now())
   
-  item            Item         @relation(fields: [itemId], references: [id])
+  item            Item         @relation(fields: [itemId], references: [id], onDelete: Cascade)
   fromStorageUnit StorageUnit? @relation("FromStorageUnit", fields: [fromStorageUnitId], references: [id])
   toStorageUnit   StorageUnit? @relation("ToStorageUnit", fields: [toStorageUnitId], references: [id])
   
@@ -109,11 +119,64 @@ model Notification {
   read      Boolean  @default(false)
   metadata  String?  // JSON string for additional data
   
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@index([userId, read])
   @@index([createdAt])
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  category    String   // inventory, movement, analytics
+  data        String   // JSON string of report data
+  filters     String?  // JSON string of applied filters
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DamageReport {
+  id          String   @id @default(uuid())
+  itemId      String
+  description String
+  severity    String   // minor, major, critical
+  reportedBy  String   // user who reported
+  status      String   @default("open") // open, investigating, resolved
+  
+  item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteMap {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+  layout      String // JSON string of map layout
+  
+  allocations MapAllocation[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MapAllocation {
+  id            String @id @default(uuid())
+  siteMapId     String
+  storageUnitId String
+  x             Float  // X coordinate on map
+  y             Float  // Y coordinate on map
+  
+  siteMap     SiteMap     @relation(fields: [siteMapId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([siteMapId, storageUnitId])
 } 
