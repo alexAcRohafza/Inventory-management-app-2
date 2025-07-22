@@ -24,25 +24,14 @@ export default function Dashboard() {
   })
   const [loading, setLoading] = useState(true)
 
-  // If not authenticated, show public landing page
-  if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return (
-      <PublicLandingPage />
-    )
-  }
-
-  const userRole = session.user?.role as UserRole
-  const quickLinks = getVisibleMenuItems(userRole).slice(1, 7) // Skip dashboard, take next 6
-
+  // Always call useEffect - hooks must be called in same order every render
   useEffect(() => {
+    // Only fetch stats if we have a session
+    if (!session) {
+      setLoading(false)
+      return
+    }
+
     const fetchStats = async () => {
       try {
         // Fetch dashboard stats (implement these API endpoints)
@@ -75,7 +64,23 @@ export default function Dashboard() {
     }
 
     fetchStats()
-  }, [])
+  }, [session]) // Add session as dependency
+
+  // After all hooks are called, we can do conditional returns
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return <PublicLandingPage />
+  }
+
+  const userRole = session.user?.role as UserRole
+  const quickLinks = getVisibleMenuItems(userRole).slice(1, 7) // Skip dashboard, take next 6
 
   return (
     <div className="min-h-screen bg-gray-50">
