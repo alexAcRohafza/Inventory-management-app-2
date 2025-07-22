@@ -97,8 +97,9 @@ function LoginForm() {
 
           <div className="text-sm text-center text-gray-600">
             <p>Test credentials:</p>
-            <p>Email: admin@example.com | Password: password123 (Admin)</p>
-            <p>Email: user@example.com | Password: password123 (User)</p>
+            <p>Email: admin@example.com | Password: admin123 (Admin)</p>
+            <p>Email: manager@example.com | Password: manager123 (Manager)</p>
+            <p>Email: worker@example.com | Password: worker123 (Worker)</p>
           </div>
         </form>
       </div>

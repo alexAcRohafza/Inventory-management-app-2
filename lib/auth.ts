@@ -18,21 +18,29 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // For now, return a mock user - replace with actual Prisma query later
-          const mockUser = {
-            id: '1',
-            email: credentials.email,
-            name: 'Admin User',
-            role: credentials.email === 'admin@example.com' ? UserRole.ADMIN : 
-                  credentials.email === 'user@example.com' ? UserRole.WORKER : UserRole.WORKER
+          // Find user in database
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          })
+
+          if (!user) {
+            return null
           }
 
-          // Mock password validation - replace with bcrypt comparison later
-          if (credentials.password === 'password123') {
-            return mockUser
+          // Verify password using bcrypt
+          const isValidPassword = await bcrypt.compare(credentials.password, user.password)
+          
+          if (!isValidPassword) {
+            return null
           }
 
-          return null
+          // Return user object for session
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.email.split('@')[0], // Use email prefix as name
+            role: user.role as UserRole
+          }
         } catch (error) {
           console.error('Auth error:', error)
           return null

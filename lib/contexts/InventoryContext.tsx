@@ -34,13 +34,27 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      // TODO: Implement API call to add item
-      const newItem: InventoryItem = {
-        ...item,
-        id: Date.now().toString(),
-        lastUpdated: new Date()
+      const response = await fetch('/api/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: item.name,
+          description: item.category, // Map category to description for now
+          quantity: item.quantity,
+          price: item.price,
+          sku: item.supplier, // Map supplier to SKU for now - this is a temporary mapping
+          storageUnitId: 'unit-1' // Use default storage unit from seed data
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add item')
       }
-      setItems(prev => [...prev, newItem])
+
+      const result = await response.json()
       
       // Create notification for item added
       if (session?.user?.email) {
@@ -48,11 +62,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       }
       
       // Trigger immediate refresh after add
-      if (autoRefreshEnabled) {
-        await refreshItems()
-      }
-    } catch (err) {
-      setError('Failed to add item')
+      await refreshItems()
+    } catch (err: any) {
+      setError(err.message || 'Failed to add item')
     } finally {
       setLoading(false)
     }
@@ -64,14 +76,25 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     try {
       const currentItem = items.find(item => item.id === id)
       
-      // TODO: Implement API call to update item
-      setItems(prev => 
-        prev.map(item => 
-          item.id === id 
-            ? { ...item, ...updates, lastUpdated: new Date() }
-            : item
-        )
-      )
+      const response = await fetch('/api/items', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          name: updates.name,
+          description: updates.category,
+          quantity: updates.quantity,
+          price: updates.price,
+          sku: updates.supplier
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update item')
+      }
       
       // Create notifications for stock changes
       if (session?.user?.email && currentItem && updates.quantity !== undefined) {
@@ -95,11 +118,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       }
       
       // Trigger immediate refresh after update
-      if (autoRefreshEnabled) {
-        await refreshItems()
-      }
-    } catch (err) {
-      setError('Failed to update item')
+      await refreshItems()
+    } catch (err: any) {
+      setError(err.message || 'Failed to update item')
     } finally {
       setLoading(false)
     }
@@ -109,10 +130,19 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      // TODO: Implement API call to delete item
-      setItems(prev => prev.filter(item => item.id !== id))
-    } catch (err) {
-      setError('Failed to delete item')
+      const response = await fetch(`/api/items?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete item')
+      }
+      
+      // Trigger immediate refresh after delete
+      await refreshItems()
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete item')
     } finally {
       setLoading(false)
     }
@@ -122,11 +152,29 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      // TODO: Implement API call to fetch items
-      // For now, keeping existing items but simulating a refresh
-      console.log('Refreshing inventory items...')
-    } catch (err) {
-      setError('Failed to refresh items')
+      const response = await fetch('/api/items')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch items')
+      }
+      
+      const fetchedItems = await response.json()
+      
+      // Transform API response to match InventoryItem interface
+      const transformedItems = fetchedItems.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity || item.stockQuantity,
+        price: item.price || 0,
+        category: item.description || item.category || 'General',
+        supplier: item.sku || item.supplier || 'Unknown',
+        lastUpdated: new Date(item.updatedAt || item.createdAt)
+      }))
+      
+      setItems(transformedItems)
+    } catch (err: any) {
+      setError(err.message || 'Failed to refresh items')
+      console.error('Failed to refresh inventory items:', err)
     } finally {
       setLoading(false)
     }
